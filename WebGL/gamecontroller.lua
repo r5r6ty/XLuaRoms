@@ -44,6 +44,9 @@ function start()
 end
 
 function update()
+    if CS.UnityEngine.Input.GetKeyDown(CS.UnityEngine.KeyCode.Escape) then
+        CS.UnityEngine.SceneManagement.SceneManager.LoadScene("SampleScene")
+    end
 end
 
 function fixupdate()
