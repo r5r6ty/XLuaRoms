@@ -38,7 +38,7 @@ myColor = {}
 myBlocks = {}
 
 function start()
-	print("lua start...")
+    print("lua start...")
 end
 
 function update()
@@ -77,23 +77,21 @@ function init(pattern)
     center.x = CS.UnityEngine.Mathf.Round(cx)
     center.y = CS.UnityEngine.Mathf.Round(cy)
 
-	for i, v in ipairs(myPattern.pat) do
-		local x = v % 4
-		local y = v / 4
+    for i, v in ipairs(myPattern.pat) do
+        local x = v % 4
+        local y = v / 4
 
         -- 实例化Prefab
-		local block = CS.UnityEngine.GameObject.CreatePrimitive(CS.UnityEngine.PrimitiveType.Quad)
+        local block = CS.UnityEngine.GameObject.CreatePrimitive(CS.UnityEngine.PrimitiveType.Quad)
         block.transform.parent = self.transform
 
         -- 设置方块位置
         block.transform.localPosition = CS.UnityEngine.Vector3(CS.UnityEngine.Mathf.Floor(x) - CS.UnityEngine.Mathf.Floor(cx), -(CS.UnityEngine.Mathf.Floor(y) - CS.UnityEngine.Mathf.Floor(cy)), block.transform.localPosition.z)
 
         -- 随机设置方块颜色
-		local c = colorPattern[CS.Tools.Instance:RandomRangeInt(1, 4)]
+        local c = colorPattern[CS.Tools.Instance:RandomRangeInt(1, 4)]
         local mr = block:GetComponent(typeof(CS.UnityEngine.MeshRenderer))
-        --mr.material = xlua.cast(CS.ObjectManager.instance.GetO("logo"), typeof(CS.UnityEngine.Material))
         local fff = CS.ObjectManager.Instance:GetO("logo")
-        print(fff.name)
         mr.material = fff
         mr.material.color = CS.UnityEngine.Color(c.color[1], c.color[2], c.color[3], c.color[4])
         block.name = c.name
