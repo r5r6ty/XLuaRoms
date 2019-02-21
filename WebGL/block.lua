@@ -91,8 +91,7 @@ function init(pattern)
         -- 随机设置方块颜色
         local c = colorPattern[CS.Tools.Instance:RandomRangeInt(1, 4)]
         local mr = block:GetComponent(typeof(CS.UnityEngine.MeshRenderer))
-        local fff = CS.ObjectManager.Instance:GetO("logo")
-        mr.material = fff
+        mr.material = CS.ObjectManager.Instance:GetO("logo")
         mr.material.color = CS.UnityEngine.Color(c.color[1], c.color[2], c.color[3], c.color[4])
         block.name = c.name
 

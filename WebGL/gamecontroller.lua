@@ -149,12 +149,16 @@ function GameInitialize()
     bg2.transform.localScale = CS.UnityEngine.Vector3(filed.width + 1, filed.height + 1, 1)
     bg2.transform.position = CS.UnityEngine.Vector3(filed.width / 2 + 0.5, -filed.height / 2 - 0.5, bg2.transform.position.z + 2)
 
+    local mr2 = bg2:GetComponent(typeof(CS.UnityEngine.MeshRenderer))
+    mr.material = CS.ObjectManager.Instance:GetO("logo")
+    mr1.material.color = CS.UnityEngine.Color.white
+
     local bg1 = CS.UnityEngine.GameObject.CreatePrimitive(CS.UnityEngine.PrimitiveType.Quad)
     bg1.transform.localScale = CS.UnityEngine.Vector3(filed.width, filed.height, 1)
     local  mr1 = bg1:GetComponent(typeof(CS.UnityEngine.MeshRenderer))
+    mr1.material = CS.ObjectManager.Instance:GetO("logo")
     mr1.material.color = CS.UnityEngine.Color.black
     bg1.transform.position = CS.UnityEngine.Vector3(filed.width / 2 + 0.5, -filed.height / 2 - 0.5, bg1.transform.position.z + 1)
-
 end
 
 -- 生成方块函数
