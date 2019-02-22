@@ -9,7 +9,7 @@
 local timecounter = 10
 local speed = 1
 
-local block = { go = nil, lua = nil }
+local block = {}
 local blockStack = {}
 
 local tile = { width = 1, height = 1 }
@@ -27,6 +27,8 @@ local colorPattern = { "red", "green", "blue" }
 --    end
 --end
 
+local audioPlayer = nil
+
 function eliminateProcess()
 --	for i,v in ipairs(colorPattern) do
 --	    for i,v in ipairs(blockStack) do
@@ -41,6 +43,9 @@ function start()
 	print("injected object", LCanvas)
 
     GameInitialize()
+
+    audioPlayer = self.gameObject:AddComponent(typeof(CS.UnityEngine.AudioSource));
+    audioPlayer.clip = CS.ObjectManager.Instance:GetO("bomb")
 end
 
 function update()
@@ -97,8 +102,8 @@ function fixupdate()
                         CS.UnityEngine.Object.Destroy(v.go)
                         coordinate[v.x][v.y] = nil
                     end
-	                for k = 1, filed.width, 1 do
-    	                for l = -filed.height, -1, 1 do
+                    for l = -filed.height, -1, 1 do
+	                    for k = 1, filed.width, 1 do
                             if coordinate[k][l] ~= nil and l > j then
                                 local temp = coordinate[k][l]
                                 coordinate[k][l] = nil
@@ -110,6 +115,7 @@ function fixupdate()
                 end
             end
         end
+        timecounter = 0
 		generateBlock(CS.Tools.Instance:RandomRangeInt(1, 8))
     end
 
@@ -135,10 +141,9 @@ function ondestroy()
 end
 
 function GameInitialize()
-
 	for i = 1, filed.width, 1 do
             coordinate[i] = {}
-    	for j = -1, -filed.height, -1 do
+    	for j = 2, -filed.height, -1 do
             coordinate[i][j] = nil
         end
     end
@@ -159,6 +164,8 @@ function GameInitialize()
     mr1.material = CS.ObjectManager.Instance:GetO("logo")
     mr1.material.color = CS.UnityEngine.Color.black
     bg1.transform.position = CS.UnityEngine.Vector3(filed.width / 2 + 0.5, -filed.height / 2 - 0.5, bg1.transform.position.z + 1)
+
+    block = { go = nil, lua = nil }
 end
 
 -- 生成方块函数
@@ -170,7 +177,7 @@ function generateBlock(pt)
     local parent = CS.UnityEngine.GameObject("block")
 
     -- 设置方块位置
-    parent.transform.position = CS.UnityEngine.Vector3(5, 0, parent.transform.position.z)
+    parent.transform.position = CS.UnityEngine.Vector3(5, 1, parent.transform.position.z)
 --    parent.transform.eulerAngles = CS.UnityEngine.Vector3(0, 0, blockAngle[anum])
 
     -- 挂上lua脚本
@@ -184,16 +191,44 @@ function generateBlock(pt)
     block.go = parent
     block.lua = t
 
-    registerPosition(parent)
+    local isDead = registerPosition(parent)
+    if isDead == false then
+        for j = 2, -filed.height, -1 do
+            for i = 1, filed.width, 1 do
+                if coordinate[i][j] ~= nil then
+                    CS.UnityEngine.Object.Destroy(coordinate[i][j])
+                end
+            end
+        end
+	    for i = 1, filed.width, 1 do
+                coordinate[i] = {}
+    	    for j = 2, -filed.height, -1 do
+                coordinate[i][j] = nil
+            end
+        end
+    end
 end
 
 function registerPosition(go)
+    local canRegister = true
     for i = 0, go.transform.childCount - 1, 1 do
         local child = go.transform:GetChild(i)
         local x = CS.UnityEngine.Mathf.Round(child.position.x)
         local y = CS.UnityEngine.Mathf.Round(child.position.y)
-        coordinate[x][y] = child.gameObject
+        if coordinate[x][y] ~= nil then
+            canRegister = false
+        end
     end
+
+    if (canRegister == true) then
+        for i = 0, go.transform.childCount - 1, 1 do
+            local child = go.transform:GetChild(i)
+            local x = CS.UnityEngine.Mathf.Round(child.position.x)
+            local y = CS.UnityEngine.Mathf.Round(child.position.y)
+            coordinate[x][y] = child.gameObject
+        end
+    end
+    return canRegister
 end
 
 function clearPosition(go)
@@ -334,6 +369,7 @@ function inputController()
 end
 
 function DestroyBlock(go)
+    audioPlayer:Play()
     local last = {}
     while go.transform.childCount > 0 do
         local child = go.transform:GetChild(0)

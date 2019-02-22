@@ -38,7 +38,7 @@ myColor = {}
 myBlocks = {}
 
 function start()
-    print("lua start...")
+--    print("lua start...")
 end
 
 function update()
@@ -49,7 +49,7 @@ function fixupdate()
 end
 
 function ondestroy()
-    print("lua destroy")
+--    print("lua destroy")
 end
 
 function move(x, y)
