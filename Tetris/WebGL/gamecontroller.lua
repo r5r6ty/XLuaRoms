@@ -6,11 +6,12 @@
 
 --local cs_coroutine = (require 'cs_coroutine')
 
-local timecounter = 10
+local timecounter = 0
 local speed = 1
 
 local block = {}
 local blockStack = {}
+local nextBlock = {}
 
 local tile = { width = 1, height = 1 }
 local filed = { width = tile.width * 10, height = tile.height * 20 }
@@ -20,6 +21,9 @@ local coordinate = {}
 local input = { up = 0, down = 0, left = 0, right = 0, space = 0 }
 
 local colorPattern = { "red", "green", "blue" }
+
+local UIscore = nil
+local gameScore = 0
 
 --local eliminateProcess = function()
 --    while true do
@@ -49,6 +53,8 @@ function start()
 end
 
 function update()
+	UIscore.text = gameScore
+
     if CS.UnityEngine.Input.GetKeyDown(CS.UnityEngine.KeyCode.Escape) then
         CS.UnityEngine.SceneManagement.SceneManager.LoadScene("SampleScene")
     end
@@ -101,6 +107,7 @@ function fixupdate()
                     for i, v in ipairs(g) do
                         CS.UnityEngine.Object.Destroy(v.go)
                         coordinate[v.x][v.y] = nil
+						gameScore = gameScore + 1
                     end
                     for l = -filed.height, -1, 1 do
 	                    for k = 1, filed.width, 1 do
@@ -116,12 +123,38 @@ function fixupdate()
             end
         end
         timecounter = 0
-		generateBlock(CS.Tools.Instance:RandomRangeInt(1, 8))
+		if nextBlock.go == nil then
+			generateBlock(block, CS.Tools.Instance:RandomRangeInt(1, 8), 5, 1)
+			generateBlock(nextBlock, CS.Tools.Instance:RandomRangeInt(1, 8), 13, -3)
+		else
+			block = nextBlock
+			nextBlock = {}
+			block.go.transform.position = CS.UnityEngine.Vector3(5, 1, block.go.transform.position.z)
+			generateBlock(nextBlock, CS.Tools.Instance:RandomRangeInt(1, 8), 13, -3)
+		end
+
+		local isDead = registerPosition(block.go)
+		if isDead == false then
+			for j = 2, -filed.height, -1 do
+				for i = 1, filed.width, 1 do
+					if coordinate[i][j] ~= nil then
+						CS.UnityEngine.Object.Destroy(coordinate[i][j])
+					end
+				end
+			end
+			for i = 1, filed.width, 1 do
+					coordinate[i] = {}
+				for j = 2, -filed.height, -1 do
+					coordinate[i][j] = nil
+				end
+			end
+			gameScore = 0
+		end
     end
 
     inputController()
 
-	if timecounter >= speed then
+	if timecounter >= speed / (gameScore / 10 + 1) then
 
         if input.down == 0 then
             local dy = movePosition(block.go, 0, -1)
@@ -149,6 +182,16 @@ function GameInitialize()
     end
 
     LCamera.transform.position = CS.UnityEngine.Vector3(filed.width / 2 + 0.5, -filed.height / 2 - 0.5, LCamera.transform.position.z)
+	
+	local score = CS.UnityEngine.GameObject("score")
+	score.transform.parent = LCanvas.transform
+	score.transform.localPosition = CS.UnityEngine.Vector3(260, 270, 0)
+	score.transform.localScale = CS.UnityEngine.Vector3.one
+	local rt = score:AddComponent(typeof(CS.UnityEngine.RectTransform))
+	UIscore = score:AddComponent(typeof(CS.UnityEngine.UI.Text))
+	UIscore.font = CS.UnityEngine.Font.CreateDynamicFontFromOSFont("Arial", 14)
+	UIscore.fontSize = 28
+	UIscore.rectTransform.sizeDelta = CS.UnityEngine.Vector2(200, 28)
 
     local bg2 = CS.UnityEngine.GameObject.CreatePrimitive(CS.UnityEngine.PrimitiveType.Quad)
     bg2.transform.localScale = CS.UnityEngine.Vector3(filed.width + 1, filed.height + 1, 1)
@@ -169,7 +212,7 @@ function GameInitialize()
 end
 
 -- 生成方块函数
-function generateBlock(pt)
+function generateBlock(blk, pt, x, y)
 
 
 --    local pattern = blockPattern[num]
@@ -177,7 +220,7 @@ function generateBlock(pt)
     local parent = CS.UnityEngine.GameObject("block")
 
     -- 设置方块位置
-    parent.transform.position = CS.UnityEngine.Vector3(5, 1, parent.transform.position.z)
+    parent.transform.position = CS.UnityEngine.Vector3(x, y, parent.transform.position.z)
 --    parent.transform.eulerAngles = CS.UnityEngine.Vector3(0, 0, blockAngle[anum])
 
     -- 挂上lua脚本
@@ -188,25 +231,8 @@ function generateBlock(pt)
     t.speed = 0
     t.init(pt)
 
-    block.go = parent
-    block.lua = t
-
-    local isDead = registerPosition(parent)
-    if isDead == false then
-        for j = 2, -filed.height, -1 do
-            for i = 1, filed.width, 1 do
-                if coordinate[i][j] ~= nil then
-                    CS.UnityEngine.Object.Destroy(coordinate[i][j])
-                end
-            end
-        end
-	    for i = 1, filed.width, 1 do
-                coordinate[i] = {}
-    	    for j = 2, -filed.height, -1 do
-                coordinate[i][j] = nil
-            end
-        end
-    end
+    blk.go = parent
+    blk.lua = t
 end
 
 function registerPosition(go)
