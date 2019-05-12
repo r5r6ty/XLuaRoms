@@ -48,6 +48,10 @@ function fixupdate()
 
 end
 
+function onTriggerEnter(whaaa)
+    print(whaaa.name)
+end
+
 function ondestroy()
 --    print("lua destroy")
 end
